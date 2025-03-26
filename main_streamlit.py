@@ -1,9 +1,13 @@
+import os
+from dotenv import load_dotenv
 from groq import Groq
-from colorama import init, Fore, Style
+import streamlit as st
 
-GROQ_API_KEY = "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"
+load_dotenv()
 
-init()
+GROQ_API_KEY = os.getenv('GROQ_API_KEY')
+if GROQ_API_KEY is None:
+    raise ValueError('GROQ_API_KEY not found in environment variables')
 
 assistant_msg = 'Você é um assistente inteligente que produz respostas lógicas, honestas e úteis para usuários humanos.'
 assistant_convo = [{'role': 'system', 'content': assistant_msg}]
@@ -32,16 +36,21 @@ def generate_groq_response(convo):
     return response_text
 
 def main():
+    st.title("Engenharia de Prompt")
+    st.write(f"Modelo utilizado: deepseek-r1-distill-llama-70b")
+
     global assistant_convo, optimize_convo
 
-    while True:
-        prompt = input(f'{Fore.CYAN}{Style.BRIGHT}PROMPT:{Style.RESET_ALL}\n')
-        optimized_prompt = generate_groq_response(optimize_convo + [{'role': 'user', 'content': f'HUMAN PROMPT:\n{prompt}'}])
-        print(f'\n\n{Fore.YELLOW}{Style.BRIGHT}OPTIMIZED PROMPT:{Style.RESET_ALL}\n{optimized_prompt}\n\n')
-        assistant_convo.append({'role': 'user', 'content': optimized_prompt})
-        assistant_response = generate_groq_response(assistant_convo)
-        print(f'{Fore.GREEN}{Style.BRIGHT}ASSISTANT RESPONSE:{Style.RESET_ALL}\n{assistant_response}\n\n')
-        assistant_convo.append({'role': 'assistant', 'content': assistant_response})
+    user_prompt = st.text_area("Prompt do Usuário:", "")
+
+    if st.button("Otimizar Prompt"):
+        if user_prompt:
+            with st.spinner("Otimizando o prompt..."):
+                optimized_prompt = generate_groq_response(optimize_convo + [{'role': 'user', 'content': f'HUMAN PROMPT:\n{user_prompt}'}])
+            st.text_area("Prompt Otimizado:", value=optimized_prompt, height=200)
+            assistant_convo.append({'role': 'user', 'content': optimized_prompt})
+        else:
+            st.warning("Por favor, insira um prompt.")
 
 
 if __name__ == "__main__":

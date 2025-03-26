@@ -1,7 +1,13 @@
+import os
+from dotenv import load_dotenv
 from groq import Groq
 from colorama import init, Fore, Style
 
-GROQ_API_KEY = "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"
+load_dotenv()
+
+GROQ_API_KEY = os.getenv('GROQ_API_KEY')
+if GROQ_API_KEY is None:
+    raise ValueError('GROQ_API_KEY not found in environment variables')
 
 init()
 
@@ -36,12 +42,19 @@ def main():
 
     while True:
         prompt = input(f'{Fore.CYAN}{Style.BRIGHT}PROMPT:{Style.RESET_ALL}\n')
+        if prompt.lower() == 'sair':
+            print('Saindo...')
+            break
+
+        # PROMPT OTIMIZADO
         optimized_prompt = generate_groq_response(optimize_convo + [{'role': 'user', 'content': f'HUMAN PROMPT:\n{prompt}'}])
         print(f'\n\n{Fore.YELLOW}{Style.BRIGHT}OPTIMIZED PROMPT:{Style.RESET_ALL}\n{optimized_prompt}\n\n')
         assistant_convo.append({'role': 'user', 'content': optimized_prompt})
-        assistant_response = generate_groq_response(assistant_convo)
-        print(f'{Fore.GREEN}{Style.BRIGHT}ASSISTANT RESPONSE:{Style.RESET_ALL}\n{assistant_response}\n\n')
-        assistant_convo.append({'role': 'assistant', 'content': assistant_response})
+        
+        # RESPOSTA DO ASSISTENTE
+        # assistant_response = generate_groq_response(assistant_convo)
+        # print(f'{Fore.GREEN}{Style.BRIGHT}ASSISTANT RESPONSE:{Style.RESET_ALL}\n{assistant_response}\n\n')
+        # assistant_convo.append({'role': 'assistant', 'content': assistant_response})
 
 
 if __name__ == "__main__":
