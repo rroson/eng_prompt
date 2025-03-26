@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from groq import Groq
 import streamlit as st
+import pyperclip  # Importe a biblioteca pyperclip
 
 load_dotenv()
 
@@ -35,22 +36,34 @@ def generate_groq_response(convo):
     response_text = completion.choices[0].message.content
     return response_text
 
+def copy_to_clipboard(text):
+    """Copia o texto para a área de transferência."""
+    pyperclip.copy(text)
+    st.success("Prompt copiado para a área de transferência!")
+
 def main():
     st.title("Engenharia de Prompt")
     st.write(f"Modelo utilizado: deepseek-r1-distill-llama-70b")
 
     global assistant_convo, optimize_convo
 
+    if "optimized_prompt" not in st.session_state:
+        st.session_state.optimized_prompt = ""
+
     user_prompt = st.text_area("Prompt do Usuário:", "")
 
     if st.button("Otimizar Prompt"):
         if user_prompt:
             with st.spinner("Otimizando o prompt..."):
-                optimized_prompt = generate_groq_response(optimize_convo + [{'role': 'user', 'content': f'HUMAN PROMPT:\n{user_prompt}'}])
-            st.text_area("Prompt Otimizado:", value=optimized_prompt, height=200)
-            assistant_convo.append({'role': 'user', 'content': optimized_prompt})
+                st.session_state.optimized_prompt = generate_groq_response(optimize_convo + [{'role': 'user', 'content': f'HUMAN PROMPT:\n{user_prompt}'}])
+            assistant_convo.append({'role': 'user', 'content': st.session_state.optimized_prompt})
         else:
             st.warning("Por favor, insira um prompt.")
+    
+    if st.session_state.optimized_prompt:
+        st.text_area("Prompt Otimizado:", value=st.session_state.optimized_prompt, height=200, key="optimized_prompt_area")
+        if st.button("Copiar", key="copy_button"):
+            copy_to_clipboard(st.session_state.optimized_prompt)
 
 
 if __name__ == "__main__":

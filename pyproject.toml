@@ -8,4 +8,6 @@ dependencies = [
     "colorama>=0.4.6",
     "dotenv>=0.9.9",
     "groq>=0.20.0",
+    "pyperclip>=1.9.0",
+    "streamlit>=1.44.0",
 ]
